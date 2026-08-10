@@ -1,8 +1,7 @@
 // Frontend logic for the Member Management app.
 // Talks to the FastAPI backend at API_BASE via fetch/JSON.
 
-const API_BASE = "http://127.0.0.1:8000";
-
+const API_BASE = "https://member-management-42by.onrender.com";
 const form = document.getElementById("member-form");
 const formTitle = document.getElementById("form-title");
 const submitBtn = document.getElementById("submit-btn");
