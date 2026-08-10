@@ -84,6 +84,12 @@ main {
 }
 .panel-header-row h2 { margin: 0; }
 
+.panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .count-badge {
   font-family: var(--font-mono);
   font-size: 12px;

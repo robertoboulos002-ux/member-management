@@ -20,6 +20,10 @@ const searchLastname = document.getElementById("search-lastname");
 const searchBtn = document.getElementById("search-btn");
 const clearSearchBtn = document.getElementById("clear-search-btn");
 
+const exportCsvBtn = document.getElementById("export-csv-btn");
+const importCsvBtn = document.getElementById("import-csv-btn");
+const importCsvInput = document.getElementById("import-csv-input");
+
 const deleteModal = document.getElementById("delete-modal");
 const deleteModalText = document.getElementById("delete-modal-text");
 const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
@@ -28,10 +32,12 @@ const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
 const FIELDS = ["firstname", "lastname", "date_of_birth", "father_name", "mother_name", "intercessor_name"];
 
 let pendingDeleteId = null;
+let currentMembers = [];
 
 // ---- Rendering ----
 
 function renderMembers(members) {
+  currentMembers = members;
   tbody.innerHTML = "";
 
   if (members.length === 0) {
@@ -248,6 +254,186 @@ clearSearchBtn.addEventListener("click", () => {
   searchFirstname.value = "";
   searchLastname.value = "";
   loadAndRenderMembers();
+});
+
+// ---- CSV export ----
+
+function csvEscape(value) {
+  const text = String(value ?? "");
+  if (/[",\r\n]/.test(text)) {
+    return `"${text.replace(/"/g, '""')}"`;
+  }
+  return text;
+}
+
+function buildCsv(members) {
+  const lines = [FIELDS.join(",")];
+  for (const member of members) {
+    lines.push(FIELDS.map((field) => csvEscape(member[field])).join(","));
+  }
+  return lines.join("\r\n");
+}
+
+function todayStamp() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+exportCsvBtn.addEventListener("click", () => {
+  if (currentMembers.length === 0) {
+    showStatus("Nothing to export — the member list is empty.", "error");
+    return;
+  }
+
+  const blob = new Blob([buildCsv(currentMembers)], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `members-export-${todayStamp()}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+
+  showStatus(`Exported ${currentMembers.length} member(s).`, "success");
+});
+
+// ---- CSV import ----
+
+// Minimal state-machine parser: handles quoted fields containing commas,
+// escaped double quotes (""), and CRLF or LF line endings.
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    if (inQuotes) {
+      if (char === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += char;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inQuotes = true;
+    } else if (char === ",") {
+      row.push(field);
+      field = "";
+    } else if (char === "\n" || char === "\r") {
+      if (char === "\r" && text[i + 1] === "\n") i++;
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = "";
+    } else {
+      field += char;
+    }
+  }
+
+  if (field !== "" || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+
+  return rows.filter((r) => r.some((cell) => cell.trim() !== ""));
+}
+
+// Maps CSV columns to member fields. Uses the header row when it names the
+// fields; otherwise falls back to the canonical FIELDS order.
+function resolveColumns(headerRow) {
+  const normalized = headerRow.map((cell) => cell.trim().toLowerCase());
+  const isHeader = FIELDS.every((field) => normalized.includes(field));
+
+  if (!isHeader) {
+    return { hasHeader: false, indexes: FIELDS.map((_, index) => index) };
+  }
+  return { hasHeader: true, indexes: FIELDS.map((field) => normalized.indexOf(field)) };
+}
+
+async function importCsvText(text) {
+  const rows = parseCsv(text);
+  if (rows.length === 0) {
+    showStatus("That CSV file is empty.", "error");
+    return;
+  }
+
+  const { hasHeader, indexes } = resolveColumns(rows[0]);
+  const dataRows = hasHeader ? rows.slice(1) : rows;
+
+  if (dataRows.length === 0) {
+    showStatus("That CSV file has no data rows.", "error");
+    return;
+  }
+
+  let imported = 0;
+  let skippedInvalid = 0;
+  let failed = 0;
+
+  for (const row of dataRows) {
+    const payload = {};
+    let valid = true;
+
+    FIELDS.forEach((field, position) => {
+      const value = (row[indexes[position]] ?? "").trim();
+      if (!value) valid = false;
+      payload[field] = value;
+    });
+
+    if (!valid) {
+      skippedInvalid++;
+      continue;
+    }
+
+    try {
+      await createMember(payload);
+      imported++;
+    } catch {
+      failed++;
+    }
+  }
+
+  await loadAndRenderMembers();
+
+  const parts = [`Imported ${imported} of ${dataRows.length} members.`];
+  if (skippedInvalid > 0) parts.push(`${skippedInvalid} row(s) skipped (missing fields).`);
+  if (failed > 0) parts.push(`${failed} row(s) rejected by the server.`);
+
+  showStatus(parts.join(" "), imported === dataRows.length ? "success" : "error");
+}
+
+importCsvBtn.addEventListener("click", () => importCsvInput.click());
+
+importCsvInput.addEventListener("change", () => {
+  const file = importCsvInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      await importCsvText(String(reader.result));
+    } finally {
+      importCsvInput.value = "";
+    }
+  };
+  reader.onerror = () => {
+    showStatus("Could not read that file.", "error");
+    importCsvInput.value = "";
+  };
+  reader.readAsText(file);
 });
 
 // ---- Init ----

@@ -70,7 +70,12 @@
     <section class="panel">
       <div class="panel-header-row">
         <h2>Members</h2>
-        <span class="count-badge" id="member-count">0</span>
+        <div class="panel-header-actions">
+          <span class="count-badge" id="member-count">0</span>
+          <button type="button" id="export-csv-btn" class="btn btn-ghost btn-small">Export CSV</button>
+          <button type="button" id="import-csv-btn" class="btn btn-ghost btn-small">Import CSV</button>
+          <input type="file" id="import-csv-input" accept=".csv" hidden>
+        </div>
       </div>
 
       <div id="status-message" class="status-message" hidden></div>
