@@ -13,7 +13,7 @@
   --danger: #a3372f;
   --danger-tint: #f7e6e4;
 
-  --font-body: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-body: -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", "Geeza Pro", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 
   --radius: 6px;
@@ -218,7 +218,7 @@ table {
 }
 
 thead th {
-  text-align: left;
+  text-align: start;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -236,12 +236,12 @@ tbody td {
 
 tbody tr:hover { background: var(--paper); }
 
-.actions-col { text-align: right; }
+.actions-col { text-align: end; }
 td.actions-cell {
-  text-align: right;
+  text-align: end;
   white-space: nowrap;
 }
-td.actions-cell .btn { margin-left: 6px; }
+td.actions-cell .btn { margin-inline-start: 6px; }
 
 .empty-state {
   text-align: center;

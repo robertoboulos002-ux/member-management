@@ -15,6 +15,10 @@ load_dotenv()
 
 APP_ENV = os.getenv("APP_ENV", "development")
 
+# Set ALLOWED_ORIGIN to the deployed frontend URL in production; defaults to
+# "*" so local development keeps working without extra config.
+ALLOWED_ORIGIN = os.getenv("ALLOWED_ORIGIN", "*")
+
 # Create tables if they don't already exist. Fine for SQLite/dev use;
 # a migrations tool (e.g. Alembic) would replace this in production.
 Base.metadata.create_all(bind=engine)
@@ -28,7 +32,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # fine for local dev; restrict in production
+    allow_origins=[ALLOWED_ORIGIN],
     allow_methods=["*"],
     allow_headers=["*"],
 )

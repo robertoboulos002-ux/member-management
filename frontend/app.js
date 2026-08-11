@@ -16,6 +16,7 @@ const statusMessage = document.getElementById("status-message");
 
 const searchFirstname = document.getElementById("search-firstname");
 const searchLastname = document.getElementById("search-lastname");
+const searchIntercessor = document.getElementById("search-intercessor");
 const searchBtn = document.getElementById("search-btn");
 const clearSearchBtn = document.getElementById("clear-search-btn");
 
@@ -58,8 +59,8 @@ function renderMembers(members) {
       <td>${escapeHtml(member.mother_name)}</td>
       <td>${escapeHtml(member.intercessor_name)}</td>
       <td class="actions-cell">
-        <button type="button" class="btn btn-ghost btn-small" data-action="edit" data-id="${member.id}">Edit</button>
-        <button type="button" class="btn btn-danger btn-small" data-action="delete" data-id="${member.id}">Delete</button>
+        <button type="button" class="btn btn-ghost btn-small" data-action="edit" data-id="${member.id}">تعديل</button>
+        <button type="button" class="btn btn-danger btn-small" data-action="delete" data-id="${member.id}">حذف</button>
       </td>
     `;
 
@@ -88,7 +89,7 @@ async function fetchMembers(params = {}) {
 
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error("Failed to load members");
+    throw new Error("تعذّر تحميل قائمة الأعضاء.");
   }
   return response.json();
 }
@@ -98,7 +99,7 @@ async function loadAndRenderMembers(params = {}) {
     const members = await fetchMembers(params);
     renderMembers(members);
   } catch (err) {
-    showStatus("Could not load members. Is the backend running?", "error");
+    showStatus("تعذّر تحميل قائمة الأعضاء. تأكد من أن الخدمة الخلفية تعمل.", "error");
   }
 }
 
@@ -127,15 +128,21 @@ async function deleteMember(id) {
   if (!response.ok) throw new Error(await extractError(response));
 }
 
+// The API reports errors in English; map the known ones to Arabic and fall
+// back to a generic message so nothing English reaches the user.
+const SERVER_ERRORS = {
+  "Member not found": "العضو غير موجود.",
+};
+
 async function extractError(response) {
   try {
     const data = await response.json();
     if (Array.isArray(data.detail)) {
-      return data.detail.map((d) => d.msg).join(", ");
+      return "يرجى التأكد من تعبئة جميع الحقول بشكل صحيح.";
     }
-    return data.detail || "Something went wrong.";
+    return SERVER_ERRORS[data.detail] || "حدث خطأ ما. يرجى المحاولة مرة أخرى.";
   } catch {
-    return "Something went wrong.";
+    return "حدث خطأ ما. يرجى المحاولة مرة أخرى.";
   }
 }
 
@@ -152,8 +159,8 @@ function getFormPayload() {
 function resetForm() {
   form.reset();
   memberIdField.value = "";
-  formTitle.textContent = "Add member";
-  submitBtn.textContent = "Add member";
+  formTitle.textContent = "إضافة عضو";
+  submitBtn.textContent = "إضافة عضو";
   cancelEditBtn.hidden = true;
   formError.textContent = "";
 }
@@ -163,8 +170,8 @@ function enterEditMode(member) {
   for (const field of FIELDS) {
     document.getElementById(field).value = member[field] ?? "";
   }
-  formTitle.textContent = `Edit member #${member.id}`;
-  submitBtn.textContent = "Save changes";
+  formTitle.textContent = `تعديل بيانات العضو رقم ${member.id}`;
+  submitBtn.textContent = "حفظ التغييرات";
   cancelEditBtn.hidden = false;
   formError.textContent = "";
   document.getElementById("firstname").focus();
@@ -180,10 +187,10 @@ form.addEventListener("submit", async (event) => {
   try {
     if (editingId) {
       await updateMember(editingId, payload);
-      showStatus("Member updated.", "success");
+      showStatus("تم تحديث بيانات العضو.", "success");
     } else {
       await createMember(payload);
-      showStatus("Member added.", "success");
+      showStatus("تمت إضافة العضو.", "success");
     }
     resetForm();
     await loadAndRenderMembers();
@@ -205,17 +212,17 @@ tbody.addEventListener("click", async (event) => {
   if (button.dataset.action === "edit") {
     try {
       const response = await fetch(`${API_BASE}/members/${id}`);
-      if (!response.ok) throw new Error("Member not found");
+      if (!response.ok) throw new Error("العضو غير موجود.");
       const member = await response.json();
       enterEditMode(member);
     } catch {
-      showStatus("Could not load that member for editing.", "error");
+      showStatus("تعذّر تحميل بيانات هذا العضو للتعديل.", "error");
     }
   }
 
   if (button.dataset.action === "delete") {
     pendingDeleteId = id;
-    deleteModalText.textContent = `Member #${id} will be permanently removed.`;
+    deleteModalText.textContent = `سيتم حذف العضو رقم ${id} نهائيًا.`;
     deleteModal.hidden = false;
   }
 });
@@ -224,7 +231,7 @@ confirmDeleteBtn.addEventListener("click", async () => {
   if (!pendingDeleteId) return;
   try {
     await deleteMember(pendingDeleteId);
-    showStatus("Member deleted.", "success");
+    showStatus("تم حذف العضو.", "success");
     if (memberIdField.value === pendingDeleteId) resetForm();
     await loadAndRenderMembers();
   } catch (err) {
@@ -246,12 +253,14 @@ searchBtn.addEventListener("click", () => {
   const params = {};
   if (searchFirstname.value.trim()) params.firstname = searchFirstname.value.trim();
   if (searchLastname.value.trim()) params.lastname = searchLastname.value.trim();
+  if (searchIntercessor.value.trim()) params.intercessor_name = searchIntercessor.value.trim();
   loadAndRenderMembers(params);
 });
 
 clearSearchBtn.addEventListener("click", () => {
   searchFirstname.value = "";
   searchLastname.value = "";
+  searchIntercessor.value = "";
   loadAndRenderMembers();
 });
 
@@ -282,7 +291,7 @@ function todayStamp() {
 
 exportCsvBtn.addEventListener("click", () => {
   if (currentMembers.length === 0) {
-    showStatus("Nothing to export — the member list is empty.", "error");
+    showStatus("لا توجد بيانات للتصدير — قائمة الأعضاء فارغة.", "error");
     return;
   }
 
@@ -291,13 +300,13 @@ exportCsvBtn.addEventListener("click", () => {
 
   const link = document.createElement("a");
   link.href = url;
-  link.download = `members-export-${todayStamp()}.csv`;
+  link.download = `members-export-${todayStamp()}.csv`; // ASCII filename keeps downloads portable
   document.body.appendChild(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
 
-  showStatus(`Exported ${currentMembers.length} member(s).`, "success");
+  showStatus(`تم تصدير ${currentMembers.length} عضو.`, "success");
 });
 
 // ---- CSV import ----
@@ -366,7 +375,7 @@ function resolveColumns(headerRow) {
 async function importCsvText(text) {
   const rows = parseCsv(text);
   if (rows.length === 0) {
-    showStatus("That CSV file is empty.", "error");
+    showStatus("ملف CSV فارغ.", "error");
     return;
   }
 
@@ -374,7 +383,7 @@ async function importCsvText(text) {
   const dataRows = hasHeader ? rows.slice(1) : rows;
 
   if (dataRows.length === 0) {
-    showStatus("That CSV file has no data rows.", "error");
+    showStatus("لا يحتوي ملف CSV على أي صفوف بيانات.", "error");
     return;
   }
 
@@ -407,9 +416,9 @@ async function importCsvText(text) {
 
   await loadAndRenderMembers();
 
-  const parts = [`Imported ${imported} of ${dataRows.length} members.`];
-  if (skippedInvalid > 0) parts.push(`${skippedInvalid} row(s) skipped (missing fields).`);
-  if (failed > 0) parts.push(`${failed} row(s) rejected by the server.`);
+  const parts = [`تم استيراد ${imported} من ${dataRows.length} عضو.`];
+  if (skippedInvalid > 0) parts.push(`تم تجاهل ${skippedInvalid} صفًا بسبب حقول ناقصة.`);
+  if (failed > 0) parts.push(`تم رفض ${failed} صفًا من الخادم.`);
 
   showStatus(parts.join(" "), imported === dataRows.length ? "success" : "error");
 }
@@ -429,7 +438,7 @@ importCsvInput.addEventListener("change", () => {
     }
   };
   reader.onerror = () => {
-    showStatus("Could not read that file.", "error");
+    showStatus("تعذّر قراءة هذا الملف.", "error");
     importCsvInput.value = "";
   };
   reader.readAsText(file);

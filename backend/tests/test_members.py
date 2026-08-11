@@ -103,6 +103,17 @@ def test_search_members_by_firstname():
     assert len(response.json()) == 0
 
 
+def test_search_members_by_intercessor_name():
+    client.post("/members", json=SAMPLE_MEMBER)
+    response = client.get("/members", params={"intercessor_name": "James"})
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+    response = client.get("/members", params={"intercessor_name": "Zzz"})
+    assert response.status_code == 200
+    assert len(response.json()) == 0
+
+
 def test_update_member():
     created = client.post("/members", json=SAMPLE_MEMBER).json()
     updated_data = {**SAMPLE_MEMBER, "lastname": "Smith"}

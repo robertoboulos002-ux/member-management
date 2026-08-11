@@ -27,18 +27,21 @@ def create_member(member: MemberCreate, db: Session = Depends(get_db)):
 def list_or_search_members(
     firstname: Optional[str] = Query(None, description="Filter by firstname (partial match)"),
     lastname: Optional[str] = Query(None, description="Filter by lastname (partial match)"),
+    intercessor_name: Optional[str] = Query(None, description="Filter by intercessor name (partial match)"),
     db: Session = Depends(get_db),
 ):
-    """List all members, or search by firstname/lastname if provided.
-    If both are given, members matching either are returned."""
+    """List all members, or search by firstname/lastname/intercessor_name if provided.
+    If several are given, members matching any of them are returned."""
     query = db.query(Member)
 
-    if firstname or lastname:
+    if firstname or lastname or intercessor_name:
         filters = []
         if firstname:
             filters.append(Member.firstname.ilike(f"%{firstname}%"))
         if lastname:
             filters.append(Member.lastname.ilike(f"%{lastname}%"))
+        if intercessor_name:
+            filters.append(Member.intercessor_name.ilike(f"%{intercessor_name}%"))
         query = query.filter(or_(*filters))
 
     return query.all()
