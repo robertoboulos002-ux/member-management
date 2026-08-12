@@ -67,7 +67,7 @@ The frontend is a separate static app (`frontend/index.html`, `styles.css`, `app
 ### Using the app
 
 - **Add a member**: fill in the form at the top and click **Add member**.
-- **Search**: enter a first name and/or last name in the Search section and click **Search**. Click **Clear** to return to the full list.
+- **Search**: enter an intercessor name in the Search section and click **Search**. Click **Clear** to return to the full list.
 - **Edit a member**: click **Edit** in a row — the form switches to edit mode. Click **Save changes** to update, or **Cancel** to discard.
 - **Delete a member**: click **Delete** in a row and confirm in the dialog.
 
@@ -75,7 +75,7 @@ The frontend calls the following endpoints:
 
 | Action        | Method | Endpoint                          |
 |---------------|--------|------------------------------------|
-| List/search   | GET    | `/members?firstname=&lastname=`   |
+| List/search   | GET    | `/members?intercessor_name=`      |
 | Get one       | GET    | `/members/{id}`                   |
 | Create        | POST   | `/members`                        |
 | Update        | PUT    | `/members/{id}`                   |

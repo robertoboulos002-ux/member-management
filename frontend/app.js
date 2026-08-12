@@ -14,8 +14,6 @@ const emptyState = document.getElementById("empty-state");
 const memberCount = document.getElementById("member-count");
 const statusMessage = document.getElementById("status-message");
 
-const searchFirstname = document.getElementById("search-firstname");
-const searchLastname = document.getElementById("search-lastname");
 const searchIntercessor = document.getElementById("search-intercessor");
 const searchBtn = document.getElementById("search-btn");
 const clearSearchBtn = document.getElementById("clear-search-btn");
@@ -251,15 +249,12 @@ cancelDeleteBtn.addEventListener("click", () => {
 
 searchBtn.addEventListener("click", () => {
   const params = {};
-  if (searchFirstname.value.trim()) params.firstname = searchFirstname.value.trim();
-  if (searchLastname.value.trim()) params.lastname = searchLastname.value.trim();
-  if (searchIntercessor.value.trim()) params.intercessor_name = searchIntercessor.value.trim();
+  const intercessor = searchIntercessor.value.trim();
+  if (intercessor) params.intercessor_name = intercessor;
   loadAndRenderMembers(params);
 });
 
 clearSearchBtn.addEventListener("click", () => {
-  searchFirstname.value = "";
-  searchLastname.value = "";
   searchIntercessor.value = "";
   loadAndRenderMembers();
 });

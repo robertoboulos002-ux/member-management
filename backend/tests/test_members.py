@@ -92,15 +92,12 @@ def test_list_members():
     assert len(response.json()) == 1
 
 
-def test_search_members_by_firstname():
+def test_search_ignores_non_intercessor_filters():
     client.post("/members", json=SAMPLE_MEMBER)
-    response = client.get("/members", params={"firstname": "Jo"})
+    # firstname/lastname are no longer search criteria — they must not narrow results.
+    response = client.get("/members", params={"firstname": "Zzz", "lastname": "Zzz"})
     assert response.status_code == 200
     assert len(response.json()) == 1
-
-    response = client.get("/members", params={"firstname": "Zzz"})
-    assert response.status_code == 200
-    assert len(response.json()) == 0
 
 
 def test_search_members_by_intercessor_name():
