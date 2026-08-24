@@ -29,6 +29,28 @@ class DatabaseHealthResponse(BaseModel):
     missing_members_columns: list[str] = Field(default_factory=list)
 
 
+class LoginRequest(BaseModel):
+    """Request body for POST /auth/login."""
+
+    # No max_length: a long passphrase is a good password, and there is no
+    # storage cost here - the value is compared and discarded.
+    password: str = Field(..., min_length=1)
+
+
+class LoginResponse(BaseModel):
+    """A freshly issued session token and its expiry as a unix timestamp."""
+
+    token: str
+    expires_at: int
+
+
+class SessionResponse(BaseModel):
+    """Response body for GET /auth/session."""
+
+    authenticated: bool
+    expires_at: int
+
+
 class MemberBase(BaseModel):
     """Shared fields for create/update requests. All fields are required and
     must be non-empty after trimming whitespace, except `comments`, which is

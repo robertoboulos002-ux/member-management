@@ -1,7 +1,9 @@
 // Frontend logic for the Member Management app.
-// Talks to the FastAPI backend at API_BASE via fetch/JSON.
+// Talks to the FastAPI backend over JSON through apiFetch(), which attaches the
+// admin session token and bounces back to the login page if it has lapsed.
+// That helper, the API base URL and the session store all live in auth.js,
+// which every page loads first.
 
-const API_BASE = "https://member-management-42by.onrender.com";
 const form = document.getElementById("member-form");
 const formTitle = document.getElementById("form-title");
 const submitBtn = document.getElementById("submit-btn");
@@ -35,6 +37,8 @@ const detailPrintMeta = document.getElementById("detail-print-meta");
 const detailPrintBtn = document.getElementById("detail-print-btn");
 const detailEditBtn = document.getElementById("detail-edit-btn");
 const detailBackBtn = document.getElementById("detail-back-btn");
+
+const logoutBtn = document.getElementById("logout-btn");
 
 const deleteModal = document.getElementById("delete-modal");
 const deleteModalText = document.getElementById("delete-modal-text");
@@ -143,9 +147,8 @@ function showStatus(message, type) {
 
 async function fetchMembers(params = {}) {
   const query = new URLSearchParams(params).toString();
-  const url = `${API_BASE}/members${query ? `?${query}` : ""}`;
 
-  const response = await fetch(url);
+  const response = await apiFetch(`/members${query ? `?${query}` : ""}`);
   if (!response.ok) {
     throw new Error("تعذّر تحميل قائمة الأعضاء.");
   }
@@ -162,13 +165,13 @@ async function loadAndRenderMembers(params = {}) {
 }
 
 async function fetchMember(id) {
-  const response = await fetch(`${API_BASE}/members/${id}`);
+  const response = await apiFetch(`/members/${id}`);
   if (!response.ok) throw new Error("العضو غير موجود.");
   return response.json();
 }
 
 async function createMember(payload) {
-  const response = await fetch(`${API_BASE}/members`, {
+  const response = await apiFetch("/members", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -178,7 +181,7 @@ async function createMember(payload) {
 }
 
 async function updateMember(id, payload) {
-  const response = await fetch(`${API_BASE}/members/${id}`, {
+  const response = await apiFetch(`/members/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -188,7 +191,7 @@ async function updateMember(id, payload) {
 }
 
 async function deleteMember(id) {
-  const response = await fetch(`${API_BASE}/members/${id}`, { method: "DELETE" });
+  const response = await apiFetch(`/members/${id}`, { method: "DELETE" });
   if (!response.ok) throw new Error(await extractError(response));
 }
 
@@ -621,6 +624,17 @@ importCsvInput.addEventListener("change", () => {
   reader.readAsText(file);
 });
 
+// ---- Session ----
+
+// logout() clears the token and returns to the login page. Nothing needs
+// clearing from the DOM: the page is left behind, and the records were never
+// cached anywhere.
+logoutBtn.addEventListener("click", logout);
+
 // ---- Init ----
 
-loadAndRenderMembers();
+// auth.js has already redirected an anonymous visitor by this point; the check
+// keeps this from firing a doomed request during the redirect.
+if (hasSession()) {
+  loadAndRenderMembers();
+}

@@ -199,6 +199,13 @@ main {
   padding: 5px 10px;
 }
 
+/* Used while a request is in flight, so the state is visible and a second
+   click cannot land. */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* Search */
 .search-row {
   display: flex;
@@ -380,6 +387,91 @@ body.detail-open #list-panel {
 .print-only { display: none; }
 
 /* Print: keep the member table only, on plain paper. */
+/* Header row: title on one side, session controls on the other. */
+.app-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Admin gate
+   -----------------------------------------------------------------------
+   A protected page opts in with data-requires-auth on <html>, and auth.js
+   adds .auth-ready once it has found a session. Until then the page is
+   hidden, so member data is never briefly visible before the redirect to
+   the login page happens. visibility, not display: the layout is already
+   correct when it appears, with no reflow. */
+html[data-requires-auth]:not(.auth-ready) body {
+  visibility: hidden;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+}
+
+.login-shell {
+  max-width: 420px;
+  width: 100%;
+  margin: auto;
+  padding: 32px 24px 64px;
+  display: block;
+}
+
+.login-card {
+  background: var(--white);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius);
+  padding: 28px 28px 24px;
+  box-shadow: var(--shadow-md);
+}
+
+.login-header {
+  margin-bottom: 22px;
+}
+
+.login-header h1 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.login-header .subtitle {
+  font-size: 13px;
+}
+
+/* Field plus the show/hide toggle, which must not stretch with it. */
+.password-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.password-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.password-row .btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.btn-block {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.login-note {
+  margin: 18px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--ink-100);
+  color: var(--ink-500);
+  font-size: 12px;
+}
+
 @media print {
   @page { margin: 14mm; }
 
@@ -393,6 +485,7 @@ body.detail-open #list-panel {
     margin-bottom: 14px;
   }
   .app-header .subtitle { display: none; }
+  .app-header-row { display: block; }
 
   main {
     max-width: none;
@@ -404,6 +497,7 @@ body.detail-open #list-panel {
   /* Everything that is interactive or on-screen chrome. */
   #form-panel,
   #search-panel,
+  #logout-btn,
   .panel-header-actions,
   .status-message,
   .modal-overlay,

@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, engine
 from app.migrate import ensure_member_columns
-from app.routers import health, members
+from app.routers import auth, health, members
 
 load_dotenv()
 
@@ -65,6 +65,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(health.router)
 app.include_router(members.router)
 

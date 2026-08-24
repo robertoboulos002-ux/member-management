@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Member records are personal data: keep this page out of search engines
+       and out of any referrer sent to another site. -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>لوحة تحكم المشرف - رعية قلحات</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="login-page">
+
+  <main class="login-shell">
+    <section class="login-card">
+      <header class="login-header">
+        <h1>لوحة تحكم المشرف</h1>
+        <p class="subtitle">سجلّات الأعضاء محمية. أدخل كلمة المرور للمتابعة.</p>
+      </header>
+
+      <!-- autocomplete="off" on the form and "current-password" on the field:
+           the browser may offer a saved password, but nothing else here is
+           worth remembering. -->
+      <form id="login-form" autocomplete="off" novalidate>
+        <div class="field">
+          <label for="admin-password">كلمة المرور</label>
+          <div class="password-row">
+            <input
+              type="password"
+              id="admin-password"
+              name="password"
+              autocomplete="current-password"
+              required
+              autofocus>
+            <button
+              type="button"
+              id="toggle-password-btn"
+              class="btn btn-ghost btn-small"
+              aria-pressed="false">إظهار</button>
+          </div>
+        </div>
+
+        <button type="submit" id="login-btn" class="btn btn-primary btn-block">دخول</button>
+
+        <p class="form-error" id="login-error" role="alert" aria-live="polite"></p>
+      </form>
+
+      <p class="login-note">
+        تُغلق الجلسة تلقائيًا عند إغلاق المتصفح أو بعد انتهاء مدتها.
+      </p>
+    </section>
+  </main>
+
+  <script src="auth.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

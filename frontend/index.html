@@ -1,22 +1,32 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<!-- data-requires-auth: auth.js redirects to admin.html unless a session
+     token is present, and styles.css keeps the page hidden until it is. -->
+<html lang="ar" dir="rtl" data-requires-auth>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Personal records: keep the page unindexed and send no referrer out. -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
   <title>رعية قلحات</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
   <header class="app-header">
-    <h1>رعية قلحات - إدارة الأعضاء</h1>
-    <p class="subtitle">إضافة الأعضاء والبحث عنهم وتعديل بياناتهم وحذفها.</p>
+    <div class="app-header-row">
+      <div>
+        <h1>رعية قلحات - سجل المعمودية</h1>
+        <p class="subtitle">بيانات المعمد/المعمدة</p>
+      </div>
+      <button type="button" id="logout-btn" class="btn btn-ghost btn-small">تسجيل الخروج</button>
+    </div>
   </header>
 
   <main>
     <!-- Add / Edit form -->
     <section class="panel" id="form-panel">
-      <h2 id="form-title">إضافة عضو</h2>
+      <h2 id="form-title">إضافة معمودية</h2>
       <form id="member-form">
         <input type="hidden" id="member-id">
 
@@ -78,7 +88,7 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" id="submit-btn" class="btn btn-primary">إضافة عضو</button>
+          <button type="submit" id="submit-btn" class="btn btn-primary">إضافة معمودية</button>
           <button type="button" id="cancel-edit-btn" class="btn btn-ghost" hidden>إلغاء</button>
         </div>
         <p class="form-error" id="form-error" role="alert"></p>
@@ -174,6 +184,9 @@
     </div>
   </div>
 
+  <!-- auth.js first: it defines API_BASE and the session helpers app.js uses,
+       and turns anonymous visitors away before any member data is requested. -->
+  <script src="auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

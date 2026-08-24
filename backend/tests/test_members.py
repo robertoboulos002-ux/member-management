@@ -1,48 +1,21 @@
 # Tests for member CRUD and search endpoints.
-# Uses a separate SQLite test database so runs don't touch members.db.
+# The test database, admin credentials and per-test cleanup live in conftest.py.
 
-import os
-import sys
-import warnings
 from datetime import date
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
+from app.auth import issue_token
 from app.main import app, get_allowed_origins
-from app.database import Base, get_db
 from app.models import Member
+from tests.conftest import TestingSessionLocal
 
-TEST_DATABASE_URL = "sqlite:///./test_members.db"
-
-engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-
-def override_get_db():
-    db = TestingSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-app.dependency_overrides[get_db] = override_get_db
-
-
-@pytest.fixture(autouse=True)
-def setup_and_teardown():
-    """Create fresh tables before each test and drop them after."""
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
-
-
-client = TestClient(app)
+# The member endpoints require an admin session, so the client used below
+# carries one by default. Rejection of unauthenticated callers is covered
+# separately, in test_auth.py.
+_token, _ = issue_token()
+client = TestClient(app, headers={"Authorization": f"Bearer {_token}"})
 
 SAMPLE_MEMBER = {
     "firstname": "John",

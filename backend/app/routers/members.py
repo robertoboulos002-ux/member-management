@@ -5,11 +5,20 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
+from app.auth import require_admin
 from app.database import get_db
 from app.models import Member
 from app.schemas import MemberCreate, MemberUpdate, MemberResponse
 
-router = APIRouter(prefix="/members", tags=["members"])
+# Every route here reads or writes personal data, so the whole router sits
+# behind the admin session check - there is no public member endpoint to
+# forget to guard later.
+router = APIRouter(
+    prefix="/members",
+    tags=["members"],
+    dependencies=[Depends(require_admin)],
+    responses={401: {"description": "Missing or invalid admin session"}},
+)
 
 
 @router.post("", response_model=MemberResponse, status_code=201)
