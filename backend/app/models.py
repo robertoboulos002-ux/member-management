@@ -21,3 +21,6 @@ class Member(Base):
     place_of_birth = Column(String, nullable=True)
     godfather_name = Column(String, nullable=True)
     godmother_name = Column(String, nullable=True)
+    baptizing_priest = Column(String, nullable=True)
+    place_of_baptism = Column(String, nullable=True)
+    date_of_baptism = Column(Date, nullable=True)

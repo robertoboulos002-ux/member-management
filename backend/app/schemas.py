@@ -42,6 +42,9 @@ class MemberBase(BaseModel):
     godmother_name: str = Field(..., min_length=1, max_length=100)
     date_of_birth: date
     place_of_birth: str = Field(..., min_length=1, max_length=100)
+    baptizing_priest: str = Field(..., min_length=1, max_length=100)
+    place_of_baptism: str = Field(..., min_length=1, max_length=100)
+    date_of_baptism: date
 
 
 class MemberCreate(MemberBase):
@@ -65,5 +68,8 @@ class MemberResponse(MemberBase):
     place_of_birth: Optional[str] = None
     godfather_name: Optional[str] = None
     godmother_name: Optional[str] = None
+    baptizing_priest: Optional[str] = None
+    place_of_baptism: Optional[str] = None
+    date_of_baptism: Optional[date] = None
 
     model_config = ConfigDict(from_attributes=True)

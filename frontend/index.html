@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>إدارة الأعضاء</title>
+  <title>رعية قلحات</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
   <header class="app-header">
-    <h1>إدارة الأعضاء</h1>
+    <h1>رعية قلحات - إدارة الأعضاء</h1>
     <p class="subtitle">إضافة الأعضاء والبحث عنهم وتعديل بياناتهم وحذفها.</p>
   </header>
 
@@ -56,6 +56,18 @@
           <div class="field">
             <label for="godmother_name">اسم العرّابة</label>
             <input type="text" id="godmother_name" required maxlength="100">
+          </div>
+          <div class="field">
+            <label for="baptizing_priest">الكاهن المعمّد</label>
+            <input type="text" id="baptizing_priest" required maxlength="100">
+          </div>
+          <div class="field">
+            <label for="place_of_baptism">مكان العماد</label>
+            <input type="text" id="place_of_baptism" required maxlength="100">
+          </div>
+          <div class="field">
+            <label for="date_of_baptism">تاريخ العماد</label>
+            <input type="date" id="date_of_baptism" required>
           </div>
         </div>
 
@@ -109,6 +121,9 @@
               <th>الشفيع</th>
               <th>العرّاب</th>
               <th>العرّابة</th>
+              <th>الكاهن المعمّد</th>
+              <th>مكان العماد</th>
+              <th>تاريخ العماد</th>
               <th class="actions-col">الإجراءات</th>
             </tr>
           </thead>

@@ -54,6 +54,9 @@ SAMPLE_MEMBER = {
     "godmother_name": "Mary Doe",
     "date_of_birth": "1990-05-14",
     "place_of_birth": "Beirut",
+    "baptizing_priest": "Father Elias",
+    "place_of_baptism": "Saint George Church",
+    "date_of_baptism": "1990-08-19",
 }
 
 
@@ -80,6 +83,9 @@ def test_create_member():
     assert data["place_of_birth"] == "Beirut"
     assert data["godfather_name"] == "Peter Doe"
     assert data["godmother_name"] == "Mary Doe"
+    assert data["baptizing_priest"] == "Father Elias"
+    assert data["place_of_baptism"] == "Saint George Church"
+    assert data["date_of_baptism"] == "1990-08-19"
     assert "id" in data
 
 
@@ -90,7 +96,15 @@ def test_create_member_missing_field_returns_422():
 
 
 @pytest.mark.parametrize(
-    "missing", ["place_of_birth", "godfather_name", "godmother_name"]
+    "missing",
+    [
+        "place_of_birth",
+        "godfather_name",
+        "godmother_name",
+        "baptizing_priest",
+        "place_of_baptism",
+        "date_of_baptism",
+    ],
 )
 def test_create_member_missing_new_field_returns_422(missing):
     incomplete = {k: v for k, v in SAMPLE_MEMBER.items() if k != missing}
@@ -105,6 +119,9 @@ def test_update_member_replaces_new_fields():
         "place_of_birth": "Cairo",
         "godfather_name": "Paul Doe",
         "godmother_name": "Martha Doe",
+        "baptizing_priest": "Father Boutros",
+        "place_of_baptism": "Saint Elias Church",
+        "date_of_baptism": "1990-09-23",
     }
     response = client.put(f"/members/{created['id']}", json=updated_data)
     assert response.status_code == 200
@@ -112,6 +129,9 @@ def test_update_member_replaces_new_fields():
     assert data["place_of_birth"] == "Cairo"
     assert data["godfather_name"] == "Paul Doe"
     assert data["godmother_name"] == "Martha Doe"
+    assert data["baptizing_priest"] == "Father Boutros"
+    assert data["place_of_baptism"] == "Saint Elias Church"
+    assert data["date_of_baptism"] == "1990-09-23"
 
 
 def test_legacy_member_without_new_fields_is_returned():
@@ -138,6 +158,9 @@ def test_legacy_member_without_new_fields_is_returned():
     assert data["place_of_birth"] is None
     assert data["godfather_name"] is None
     assert data["godmother_name"] is None
+    assert data["baptizing_priest"] is None
+    assert data["place_of_baptism"] is None
+    assert data["date_of_baptism"] is None
 
 
 def test_get_member():
@@ -262,4 +285,5 @@ def test_database_health_reports_the_live_schema():
     assert data["error"] is None
     assert "members" in data["tables"]
     assert "place_of_birth" in data["expected_members_columns"]
+    assert "date_of_baptism" in data["expected_members_columns"]
     assert data["missing_members_columns"] == []

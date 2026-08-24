@@ -14,14 +14,19 @@ it is a no-op on an already-correct database.
 from sqlalchemy import inspect, text
 from sqlalchemy.engine import Engine
 
-# Columns added to `members` after the first release. Nullable with no default:
-# rows created before they existed have no value to backfill with, and the API
-# layer is what enforces them on create/update.
-MEMBER_COLUMNS_ADDED_AFTER_RELEASE = (
-    "place_of_birth",
-    "godfather_name",
-    "godmother_name",
-)
+# Columns added to `members` after the first release, mapped to the SQL type to
+# create them with. Nullable with no default: rows created before they existed
+# have no value to backfill with, and the API layer is what enforces them on
+# create/update. Iterating the mapping yields the column names, so it can be
+# used anywhere a plain list of names is expected.
+MEMBER_COLUMNS_ADDED_AFTER_RELEASE = {
+    "place_of_birth": "VARCHAR(100)",
+    "godfather_name": "VARCHAR(100)",
+    "godmother_name": "VARCHAR(100)",
+    "baptizing_priest": "VARCHAR(100)",
+    "place_of_baptism": "VARCHAR(100)",
+    "date_of_baptism": "DATE",
+}
 
 
 def ensure_member_columns(engine: Engine) -> list[str]:
@@ -46,8 +51,9 @@ def ensure_member_columns(engine: Engine) -> list[str]:
 
     with engine.begin() as connection:
         for name in missing:
+            sql_type = MEMBER_COLUMNS_ADDED_AFTER_RELEASE[name]
             connection.execute(
-                text(f"ALTER TABLE members ADD COLUMN {name} VARCHAR(100) NULL")
+                text(f"ALTER TABLE members ADD COLUMN {name} {sql_type} NULL")
             )
 
     return missing

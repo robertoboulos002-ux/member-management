@@ -43,6 +43,9 @@ const FIELDS = [
   "intercessor_name",
   "godfather_name",
   "godmother_name",
+  "baptizing_priest",
+  "place_of_baptism",
+  "date_of_baptism",
 ];
 
 let pendingDeleteId = null;
@@ -75,6 +78,9 @@ function renderMembers(members) {
       <td>${escapeHtml(member.intercessor_name)}</td>
       <td>${escapeHtml(member.godfather_name)}</td>
       <td>${escapeHtml(member.godmother_name)}</td>
+      <td>${escapeHtml(member.baptizing_priest)}</td>
+      <td>${escapeHtml(member.place_of_baptism)}</td>
+      <td>${escapeHtml(member.date_of_baptism)}</td>
       <td class="actions-cell">
         <button type="button" class="btn btn-ghost btn-small" data-action="edit" data-id="${member.id}">تعديل</button>
         <button type="button" class="btn btn-danger btn-small" data-action="delete" data-id="${member.id}">حذف</button>
