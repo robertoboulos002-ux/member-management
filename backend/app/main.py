@@ -10,6 +10,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, engine
+from app.migrate import ensure_member_columns
 from app.routers import health, members
 
 load_dotenv()
@@ -39,6 +40,17 @@ ALLOWED_ORIGINS = get_allowed_origins()
 # Create tables if they don't already exist. Fine for SQLite/dev use;
 # a migrations tool (e.g. Alembic) would replace this in production.
 Base.metadata.create_all(bind=engine)
+
+# create_all() adds missing tables but never missing *columns*, so a database
+# created before a field was introduced would 500 on every query selecting it.
+# Patch it up here so deploying is enough to repair an existing database.
+try:
+    added_columns = ensure_member_columns(engine)
+    if added_columns:
+        print(f"[migrate] added members column(s): {', '.join(added_columns)}")
+except Exception as exc:  # noqa: BLE001 - never let this stop the app booting
+    # /health and / must stay up so the failure is diagnosable from the logs.
+    print(f"[migrate] could not update the members table: {exc!r}")
 
 app = FastAPI(
     title="Member Management API",
