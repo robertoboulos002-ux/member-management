@@ -13,7 +13,7 @@ from sqlalchemy.orm import sessionmaker
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.main import app
+from app.main import app, get_allowed_origins
 from app.database import Base, get_db
 from app.models import Member
 
@@ -55,6 +55,14 @@ SAMPLE_MEMBER = {
     "date_of_birth": "1990-05-14",
     "place_of_birth": "Beirut",
 }
+
+
+def test_get_allowed_origins_supports_comma_separated_values(monkeypatch):
+    monkeypatch.setenv("ALLOWED_ORIGIN", "https://app.example.com, https://admin.example.com")
+    assert get_allowed_origins() == [
+        "https://app.example.com",
+        "https://admin.example.com",
+    ]
 
 
 def test_health_check():
