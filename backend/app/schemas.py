@@ -13,6 +13,22 @@ class HealthResponse(BaseModel):
     timestamp: str
 
 
+class DatabaseHealthResponse(BaseModel):
+    """Response body for GET /health/database.
+
+    Column names only - never row data. Defaults cover the cases where there is
+    nothing to report: an unreachable database has no tables to list, and a
+    missing `members` table has no columns.
+    """
+
+    reachable: bool
+    error: Optional[str] = None
+    tables: list[str] = Field(default_factory=list)
+    members_columns: list[str] = Field(default_factory=list)
+    expected_members_columns: list[str] = Field(default_factory=list)
+    missing_members_columns: list[str] = Field(default_factory=list)
+
+
 class MemberBase(BaseModel):
     """Shared fields for create/update requests. All fields are required and
     must be non-empty after trimming whitespace."""

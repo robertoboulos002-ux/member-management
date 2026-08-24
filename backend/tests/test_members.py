@@ -252,3 +252,14 @@ def test_delete_member():
 def test_delete_nonexistent_member_returns_404():
     response = client.delete("/members/9999")
     assert response.status_code == 404
+
+def test_database_health_reports_the_live_schema():
+    """The diagnostic must answer even when /members cannot."""
+    response = client.get("/health/database")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["reachable"] is True
+    assert data["error"] is None
+    assert "members" in data["tables"]
+    assert "place_of_birth" in data["expected_members_columns"]
+    assert data["missing_members_columns"] == []
