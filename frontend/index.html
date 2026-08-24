@@ -92,7 +92,7 @@
     </section>
 
     <!-- Member list -->
-    <section class="panel">
+    <section class="panel" id="list-panel">
       <div class="panel-header-row">
         <h2>الأعضاء</h2>
         <div class="panel-header-actions">
@@ -133,6 +133,25 @@
       </div>
 
       <p class="empty-state" id="empty-state" hidden>لا يوجد أعضاء. أضف عضوًا من الأعلى للبدء.</p>
+    </section>
+
+    <!-- Single member details. Shown in place of the list when a row is opened. -->
+    <section class="panel" id="detail-panel" hidden>
+      <div class="panel-header-row detail-actions">
+        <h2>بيانات العضو</h2>
+        <div class="panel-header-actions">
+          <button type="button" id="detail-print-btn" class="btn btn-primary btn-small">طباعة</button>
+          <button type="button" id="detail-edit-btn" class="btn btn-ghost btn-small">تعديل</button>
+          <button type="button" id="detail-back-btn" class="btn btn-ghost btn-small">رجوع إلى القائمة</button>
+        </div>
+      </div>
+
+      <h3 class="detail-name" id="detail-name"></h3>
+      <p class="detail-id" id="detail-id"></p>
+
+      <dl class="detail-grid" id="detail-grid"></dl>
+
+      <p class="print-only print-meta" id="detail-print-meta"></p>
     </section>
   </main>
 

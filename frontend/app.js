@@ -26,6 +26,16 @@ const importCsvInput = document.getElementById("import-csv-input");
 const printBtn = document.getElementById("print-btn");
 const printMeta = document.getElementById("print-meta");
 
+const listPanel = document.getElementById("list-panel");
+const detailPanel = document.getElementById("detail-panel");
+const detailName = document.getElementById("detail-name");
+const detailId = document.getElementById("detail-id");
+const detailGrid = document.getElementById("detail-grid");
+const detailPrintMeta = document.getElementById("detail-print-meta");
+const detailPrintBtn = document.getElementById("detail-print-btn");
+const detailEditBtn = document.getElementById("detail-edit-btn");
+const detailBackBtn = document.getElementById("detail-back-btn");
+
 const deleteModal = document.getElementById("delete-modal");
 const deleteModalText = document.getElementById("delete-modal-text");
 const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
@@ -47,6 +57,23 @@ const FIELDS = [
   "place_of_baptism",
   "date_of_baptism",
 ];
+
+// Arabic labels for the detail view, keyed by the field names above. Same
+// wording as the form labels and the table headings.
+const FIELD_LABELS = {
+  firstname: "الاسم الأول",
+  lastname: "اسم العائلة",
+  date_of_birth: "تاريخ الميلاد",
+  place_of_birth: "مكان الميلاد",
+  father_name: "اسم الأب",
+  mother_name: "اسم الأم",
+  intercessor_name: "اسم الشفيع",
+  godfather_name: "اسم العرّاب",
+  godmother_name: "اسم العرّابة",
+  baptizing_priest: "الكاهن المعمّد",
+  place_of_baptism: "مكان العماد",
+  date_of_baptism: "تاريخ العماد",
+};
 
 let pendingDeleteId = null;
 let currentMembers = [];
@@ -82,6 +109,7 @@ function renderMembers(members) {
       <td>${escapeHtml(member.place_of_baptism)}</td>
       <td>${escapeHtml(member.date_of_baptism)}</td>
       <td class="actions-cell">
+        <button type="button" class="btn btn-primary btn-small" data-action="open" data-id="${member.id}">فتح</button>
         <button type="button" class="btn btn-ghost btn-small" data-action="edit" data-id="${member.id}">تعديل</button>
         <button type="button" class="btn btn-danger btn-small" data-action="delete" data-id="${member.id}">حذف</button>
       </td>
@@ -124,6 +152,12 @@ async function loadAndRenderMembers(params = {}) {
   } catch (err) {
     showStatus("تعذّر تحميل قائمة الأعضاء. تأكد من أن الخدمة الخلفية تعمل.", "error");
   }
+}
+
+async function fetchMember(id) {
+  const response = await fetch(`${API_BASE}/members/${id}`);
+  if (!response.ok) throw new Error("العضو غير موجود.");
+  return response.json();
 }
 
 async function createMember(payload) {
@@ -224,7 +258,81 @@ form.addEventListener("submit", async (event) => {
 
 cancelEditBtn.addEventListener("click", resetForm);
 
-// ---- Table actions (edit / delete) ----
+// ---- Member detail view ----
+
+// The detail view replaces the list in place rather than navigating: the
+// `detail-open` body class hides the form, the search panel and the list, so
+// both the screen and the print sheet show one member only.
+let currentDetailMember = null;
+
+function renderMemberDetail(member) {
+  currentDetailMember = member;
+
+  const fullName = [member.firstname, member.lastname].filter(Boolean).join(" ");
+  detailName.textContent = fullName || "—";
+  detailId.textContent = `رقم العضو: ${member.id}`;
+
+  detailGrid.innerHTML = "";
+  for (const field of FIELDS) {
+    const term = document.createElement("dt");
+    term.textContent = FIELD_LABELS[field];
+
+    const value = document.createElement("dd");
+    const raw = member[field];
+    // Rows created before the later columns existed come back empty.
+    value.textContent = raw === null || raw === undefined || raw === "" ? "—" : raw;
+    if (!raw) value.classList.add("detail-empty");
+
+    detailGrid.append(term, value);
+  }
+}
+
+function openDetail(member) {
+  renderMemberDetail(member);
+  detailPanel.hidden = false;
+  document.body.classList.add("detail-open");
+  window.scrollTo({ top: 0 });
+  detailBackBtn.focus();
+}
+
+function closeDetail() {
+  document.body.classList.remove("detail-open");
+  detailPanel.hidden = true;
+  currentDetailMember = null;
+}
+
+async function openDetailById(id) {
+  try {
+    openDetail(await fetchMember(id));
+  } catch {
+    showStatus("تعذّر تحميل بيانات هذا العضو.", "error");
+  }
+}
+
+detailBackBtn.addEventListener("click", closeDetail);
+
+detailPrintBtn.addEventListener("click", () => {
+  if (!currentDetailMember) return;
+  detailPrintMeta.textContent = `تاريخ الطباعة: ${todayStamp()}`;
+  window.print();
+});
+
+detailEditBtn.addEventListener("click", () => {
+  if (!currentDetailMember) return;
+  const member = currentDetailMember;
+  closeDetail();
+  enterEditMode(member);
+  document.getElementById("form-panel").scrollIntoView({ block: "start" });
+});
+
+// Esc closes the detail view, unless the delete dialog is the thing on top.
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (!deleteModal.hidden) return;
+  if (document.body.classList.contains("detail-open")) closeDetail();
+});
+
+// ---- Table actions (open / edit / delete) ----
 
 tbody.addEventListener("click", async (event) => {
   const button = event.target.closest("button[data-action]");
@@ -232,12 +340,13 @@ tbody.addEventListener("click", async (event) => {
 
   const id = button.dataset.id;
 
+  if (button.dataset.action === "open") {
+    await openDetailById(id);
+  }
+
   if (button.dataset.action === "edit") {
     try {
-      const response = await fetch(`${API_BASE}/members/${id}`);
-      if (!response.ok) throw new Error("العضو غير موجود.");
-      const member = await response.json();
-      enterEditMode(member);
+      enterEditMode(await fetchMember(id));
     } catch {
       showStatus("تعذّر تحميل بيانات هذا العضو للتعديل.", "error");
     }

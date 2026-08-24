@@ -265,6 +265,53 @@ td.actions-cell .btn { margin-inline-start: 6px; }
   color: var(--danger);
 }
 
+/* Member detail view — replaces the list in place while `detail-open` is set
+   on <body>, so one member fills the screen and the print sheet. */
+body.detail-open #form-panel,
+body.detail-open #search-panel,
+body.detail-open #list-panel {
+  display: none;
+}
+
+.detail-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.detail-id {
+  margin: 2px 0 18px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-500);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr max-content 1fr;
+  gap: 0 18px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.detail-grid dt {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-500);
+  padding: 9px 0;
+  border-bottom: 1px solid var(--ink-100);
+  white-space: nowrap;
+}
+
+.detail-grid dd {
+  margin: 0;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--ink-100);
+  color: var(--ink-900);
+}
+
+.detail-grid dd.detail-empty { color: var(--ink-200); }
+
 /* Modal */
 .modal-overlay[hidden] {
   display: none;
@@ -297,6 +344,9 @@ td.actions-cell .btn { margin-inline-start: 6px; }
   main { padding: 20px 16px 48px; }
   .field-grid { grid-template-columns: 1fr 1fr; }
   .search-row { flex-direction: column; }
+  .detail-grid { grid-template-columns: max-content 1fr; }
+  .detail-actions { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .detail-actions .panel-header-actions { flex-wrap: wrap; }
 }
 
 @media (max-width: 480px) {
@@ -377,4 +427,19 @@ td.actions-cell .btn { margin-inline-start: 6px; }
     padding: 5px 6px;
     border-bottom: 1px solid var(--ink-200);
   }
+
+  /* Single-member sheet. */
+  .detail-name { font-size: 16px; }
+  .detail-id { margin: 2px 0 14px; font-size: 11px; }
+
+  .detail-grid { font-size: 12px; }
+  .detail-grid dt,
+  .detail-grid dd {
+    padding: 6px 0;
+    border-bottom: 1px solid var(--ink-200);
+    break-inside: avoid;
+  }
+  .detail-grid dd.detail-empty { color: var(--ink-500); }
+
+  #detail-panel .print-meta { margin: 14px 0 0; }
 }
