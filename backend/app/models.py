@@ -1,6 +1,6 @@
 # SQLAlchemy ORM model for the Member table.
 
-from sqlalchemy import Column, Date, Integer, String
+from sqlalchemy import Column, Date, Integer, String, Text
 
 from app.database import Base
 
@@ -24,3 +24,6 @@ class Member(Base):
     baptizing_priest = Column(String, nullable=True)
     place_of_baptism = Column(String, nullable=True)
     date_of_baptism = Column(Date, nullable=True)
+    # Free-form notes. Optional everywhere, including the API: a member
+    # with nothing worth noting is the normal case, not an incomplete one.
+    comments = Column(Text, nullable=True)

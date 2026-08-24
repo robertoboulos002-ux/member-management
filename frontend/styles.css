@@ -118,7 +118,8 @@ main {
   color: var(--ink-500);
 }
 
-.field input {
+.field input,
+.field textarea {
   font-family: inherit;
   font-size: 14px;
   padding: 9px 10px;
@@ -128,7 +129,17 @@ main {
   color: var(--ink-900);
 }
 
+.field textarea {
+  resize: vertical;
+  min-height: 64px;
+  line-height: 1.5;
+}
+
+/* Notes run wider than a name does, so the field takes the full grid row. */
+.field-full { grid-column: 1 / -1; }
+
 .field input:focus,
+.field textarea:focus,
 .search-row input:focus {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
@@ -237,6 +248,13 @@ tbody td {
 tbody tr:hover { background: var(--paper); }
 
 .actions-col { text-align: end; }
+
+td.comments-cell {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 td.actions-cell {
   text-align: end;
   white-space: nowrap;
@@ -305,6 +323,7 @@ body.detail-open #list-panel {
 
 .detail-grid dd {
   margin: 0;
+  white-space: pre-wrap;
   padding: 9px 0;
   border-bottom: 1px solid var(--ink-100);
   color: var(--ink-900);
@@ -413,6 +432,13 @@ body.detail-open #list-panel {
   .table-wrap { overflow: visible; }
 
   table { font-size: 11px; }
+
+  /* On paper there is no hover to reveal a truncated note, so print it whole. */
+  td.comments-cell {
+    max-width: 140px;
+    white-space: normal;
+    overflow: visible;
+  }
 
   /* Repeat the column headings on every printed page. */
   thead { display: table-header-group; }

@@ -112,6 +112,37 @@ def test_create_member_missing_new_field_returns_422(missing):
     assert response.status_code == 422
 
 
+NOTE = "Moved abroad in 2015.\nBack since 2020."
+
+
+def test_create_member_stores_comments():
+    """Notes are stored verbatim, line breaks included."""
+    response = client.post("/members", json={**SAMPLE_MEMBER, "comments": NOTE})
+    assert response.status_code == 201
+    assert response.json()["comments"] == NOTE
+
+
+def test_comments_are_optional():
+    """Unlike every other field, a member with nothing worth noting is valid."""
+    assert "comments" not in SAMPLE_MEMBER
+    response = client.post("/members", json=SAMPLE_MEMBER)
+    assert response.status_code == 201
+    assert response.json()["comments"] is None
+
+
+def test_update_member_replaces_comments():
+    created = client.post("/members", json={**SAMPLE_MEMBER, "comments": "First note."}).json()
+
+    response = client.put(f"/members/{created['id']}", json={**SAMPLE_MEMBER, "comments": "Second note."})
+    assert response.status_code == 200
+    assert response.json()["comments"] == "Second note."
+
+    # Omitting it on a full replace clears it, like any other absent optional.
+    response = client.put(f"/members/{created['id']}", json=SAMPLE_MEMBER)
+    assert response.status_code == 200
+    assert response.json()["comments"] is None
+
+
 def test_update_member_replaces_new_fields():
     created = client.post("/members", json=SAMPLE_MEMBER).json()
     updated_data = {

@@ -26,6 +26,7 @@ MEMBER_COLUMNS_ADDED_AFTER_RELEASE = {
     "baptizing_priest": "VARCHAR(100)",
     "place_of_baptism": "VARCHAR(100)",
     "date_of_baptism": "DATE",
+    "comments": "TEXT",
 }
 
 

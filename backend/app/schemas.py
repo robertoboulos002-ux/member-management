@@ -31,7 +31,8 @@ class DatabaseHealthResponse(BaseModel):
 
 class MemberBase(BaseModel):
     """Shared fields for create/update requests. All fields are required and
-    must be non-empty after trimming whitespace."""
+    must be non-empty after trimming whitespace, except `comments`, which is
+    free-form notes and may be omitted or left blank."""
 
     firstname: str = Field(..., min_length=1, max_length=100)
     lastname: str = Field(..., min_length=1, max_length=100)
@@ -45,6 +46,7 @@ class MemberBase(BaseModel):
     baptizing_priest: str = Field(..., min_length=1, max_length=100)
     place_of_baptism: str = Field(..., min_length=1, max_length=100)
     date_of_baptism: date
+    comments: Optional[str] = Field(None, max_length=2000)
 
 
 class MemberCreate(MemberBase):

@@ -56,7 +56,12 @@ const FIELDS = [
   "baptizing_priest",
   "place_of_baptism",
   "date_of_baptism",
+  "comments",
 ];
+
+// The one field that may be left blank — free-form notes. Everything else in
+// FIELDS is required by the API, and CSV rows missing any of them are skipped.
+const OPTIONAL_FIELDS = new Set(["comments"]);
 
 // Arabic labels for the detail view, keyed by the field names above. Same
 // wording as the form labels and the table headings.
@@ -73,6 +78,7 @@ const FIELD_LABELS = {
   baptizing_priest: "الكاهن المعمّد",
   place_of_baptism: "مكان العماد",
   date_of_baptism: "تاريخ العماد",
+  comments: "ملاحظات",
 };
 
 let pendingDeleteId = null;
@@ -108,6 +114,7 @@ function renderMembers(members) {
       <td>${escapeHtml(member.baptizing_priest)}</td>
       <td>${escapeHtml(member.place_of_baptism)}</td>
       <td>${escapeHtml(member.date_of_baptism)}</td>
+      <td class="comments-cell" title="${escapeHtml(member.comments)}">${escapeHtml(member.comments)}</td>
       <td class="actions-cell">
         <button type="button" class="btn btn-primary btn-small" data-action="open" data-id="${member.id}">فتح</button>
         <button type="button" class="btn btn-ghost btn-small" data-action="edit" data-id="${member.id}">تعديل</button>
@@ -208,7 +215,10 @@ async function extractError(response) {
 function getFormPayload() {
   const payload = {};
   for (const field of FIELDS) {
-    payload[field] = document.getElementById(field).value.trim();
+    const value = document.getElementById(field).value.trim();
+    // An empty optional field means "no value", so send null rather than an
+    // empty string — that is what an omitted field stores.
+    payload[field] = !value && OPTIONAL_FIELDS.has(field) ? null : value;
   }
   return payload;
 }
@@ -563,8 +573,9 @@ async function importCsvText(text) {
 
     FIELDS.forEach((field, position) => {
       const value = (row[indexes[position]] ?? "").trim();
-      if (!value) valid = false;
-      payload[field] = value;
+      const optional = OPTIONAL_FIELDS.has(field);
+      if (!value && !optional) valid = false;
+      payload[field] = !value && optional ? null : value;
     });
 
     if (!valid) {

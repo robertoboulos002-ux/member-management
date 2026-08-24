@@ -69,6 +69,12 @@
             <label for="date_of_baptism">تاريخ العماد</label>
             <input type="date" id="date_of_baptism" required>
           </div>
+          <!-- Optional, unlike every field above it: notes exist only when
+               there is something to note. -->
+          <div class="field field-full">
+            <label for="comments">ملاحظات</label>
+            <textarea id="comments" rows="3" maxlength="2000"></textarea>
+          </div>
         </div>
 
         <div class="form-actions">
@@ -124,6 +130,7 @@
               <th>الكاهن المعمّد</th>
               <th>مكان العماد</th>
               <th>تاريخ العماد</th>
+              <th>ملاحظات</th>
               <th class="actions-col">الإجراءات</th>
             </tr>
           </thead>
