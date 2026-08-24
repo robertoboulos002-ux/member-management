@@ -14,6 +14,8 @@ const emptyState = document.getElementById("empty-state");
 const memberCount = document.getElementById("member-count");
 const statusMessage = document.getElementById("status-message");
 
+const searchFirstname = document.getElementById("search-firstname");
+const searchLastname = document.getElementById("search-lastname");
 const searchIntercessor = document.getElementById("search-intercessor");
 const searchBtn = document.getElementById("search-btn");
 const clearSearchBtn = document.getElementById("clear-search-btn");
@@ -21,13 +23,27 @@ const clearSearchBtn = document.getElementById("clear-search-btn");
 const exportCsvBtn = document.getElementById("export-csv-btn");
 const importCsvBtn = document.getElementById("import-csv-btn");
 const importCsvInput = document.getElementById("import-csv-input");
+const printBtn = document.getElementById("print-btn");
+const printMeta = document.getElementById("print-meta");
 
 const deleteModal = document.getElementById("delete-modal");
 const deleteModalText = document.getElementById("delete-modal-text");
 const confirmDeleteBtn = document.getElementById("confirm-delete-btn");
 const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
 
-const FIELDS = ["firstname", "lastname", "date_of_birth", "father_name", "mother_name", "intercessor_name"];
+// Canonical field order — drives the form payload, the table columns and the
+// CSV column order. Keep it in sync with the <th> row in index.html.
+const FIELDS = [
+  "firstname",
+  "lastname",
+  "date_of_birth",
+  "place_of_birth",
+  "father_name",
+  "mother_name",
+  "intercessor_name",
+  "godfather_name",
+  "godmother_name",
+];
 
 let pendingDeleteId = null;
 let currentMembers = [];
@@ -53,9 +69,12 @@ function renderMembers(members) {
       <td>${escapeHtml(member.firstname)}</td>
       <td>${escapeHtml(member.lastname)}</td>
       <td>${escapeHtml(member.date_of_birth)}</td>
+      <td>${escapeHtml(member.place_of_birth)}</td>
       <td>${escapeHtml(member.father_name)}</td>
       <td>${escapeHtml(member.mother_name)}</td>
       <td>${escapeHtml(member.intercessor_name)}</td>
+      <td>${escapeHtml(member.godfather_name)}</td>
+      <td>${escapeHtml(member.godmother_name)}</td>
       <td class="actions-cell">
         <button type="button" class="btn btn-ghost btn-small" data-action="edit" data-id="${member.id}">تعديل</button>
         <button type="button" class="btn btn-danger btn-small" data-action="delete" data-id="${member.id}">حذف</button>
@@ -247,14 +266,26 @@ cancelDeleteBtn.addEventListener("click", () => {
 
 // ---- Search ----
 
-searchBtn.addEventListener("click", () => {
+// Any combination of the three fields is allowed — the backend ANDs together
+// whichever ones are filled in, and returns the full list when none are.
+function currentSearchParams() {
   const params = {};
+  const firstname = searchFirstname.value.trim();
+  const lastname = searchLastname.value.trim();
   const intercessor = searchIntercessor.value.trim();
+  if (firstname) params.firstname = firstname;
+  if (lastname) params.lastname = lastname;
   if (intercessor) params.intercessor_name = intercessor;
-  loadAndRenderMembers(params);
+  return params;
+}
+
+searchBtn.addEventListener("click", () => {
+  loadAndRenderMembers(currentSearchParams());
 });
 
 clearSearchBtn.addEventListener("click", () => {
+  searchFirstname.value = "";
+  searchLastname.value = "";
   searchIntercessor.value = "";
   loadAndRenderMembers();
 });
@@ -302,6 +333,28 @@ exportCsvBtn.addEventListener("click", () => {
   URL.revokeObjectURL(url);
 
   showStatus(`تم تصدير ${currentMembers.length} عضو.`, "success");
+});
+
+// ---- Print ----
+
+// The print stylesheet hides the form, the search panel and the row actions,
+// so printing the page itself gives a clean list — no separate print window.
+printBtn.addEventListener("click", () => {
+  if (currentMembers.length === 0) {
+    showStatus("لا توجد بيانات للطباعة — قائمة الأعضاء فارغة.", "error");
+    return;
+  }
+
+  const parts = [`عدد الأعضاء: ${currentMembers.length}`, `تاريخ الطباعة: ${todayStamp()}`];
+  const firstname = searchFirstname.value.trim();
+  const lastname = searchLastname.value.trim();
+  const intercessor = searchIntercessor.value.trim();
+  if (firstname) parts.push(`بحث بالاسم الأول: ${firstname}`);
+  if (lastname) parts.push(`بحث باسم العائلة: ${lastname}`);
+  if (intercessor) parts.push(`بحث بالشفيع: ${intercessor}`);
+  printMeta.textContent = parts.join(" — ");
+
+  window.print();
 });
 
 // ---- CSV import ----
@@ -356,10 +409,13 @@ function parseCsv(text) {
 }
 
 // Maps CSV columns to member fields. Uses the header row when it names the
-// fields; otherwise falls back to the canonical FIELDS order.
+// fields; otherwise falls back to the canonical FIELDS order. Only the two
+// name columns need to be present to recognise a header, so files exported
+// before a field was added are still read as having one instead of having
+// their header row imported as a member.
 function resolveColumns(headerRow) {
   const normalized = headerRow.map((cell) => cell.trim().toLowerCase());
-  const isHeader = FIELDS.every((field) => normalized.includes(field));
+  const isHeader = normalized.includes("firstname") && normalized.includes("lastname");
 
   if (!isHeader) {
     return { hasHeader: false, indexes: FIELDS.map((_, index) => index) };

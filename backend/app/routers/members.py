@@ -24,14 +24,23 @@ def create_member(member: MemberCreate, db: Session = Depends(get_db)):
 
 @router.get("", response_model=List[MemberResponse])
 def list_or_search_members(
+    firstname: Optional[str] = Query(None, description="Filter by first name (partial match)"),
+    lastname: Optional[str] = Query(None, description="Filter by last name (partial match)"),
     intercessor_name: Optional[str] = Query(None, description="Filter by intercessor name (partial match)"),
     db: Session = Depends(get_db),
 ):
-    """List all members, or search by intercessor_name if provided."""
+    """List all members, or search by first name, last name and/or intercessor
+    name. Filters that are provided are combined with AND; blank or omitted
+    filters are ignored, so no filters at all returns the full list."""
     query = db.query(Member)
 
-    if intercessor_name:
-        query = query.filter(Member.intercessor_name.ilike(f"%{intercessor_name}%"))
+    for column, term in (
+        (Member.firstname, firstname),
+        (Member.lastname, lastname),
+        (Member.intercessor_name, intercessor_name),
+    ):
+        if term and term.strip():
+            query = query.filter(column.ilike(f"%{term.strip()}%"))
 
     return query.all()
 

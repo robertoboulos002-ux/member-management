@@ -54,6 +54,27 @@ Expected response:
 ```
 
 
+## Database migrations
+
+Tables are created on startup with `Base.metadata.create_all()`, which only
+creates *missing tables* — it never adds columns to a table that already
+exists. When a field is added to the model, an already-populated database
+needs the matching script in `migrations/` run once before the new code is
+served:
+
+```bash
+python migrations/001_add_birthplace_and_godparents.py
+```
+
+Point `DATABASE_URL` at the target database first (unset, it migrates the
+local SQLite file). The scripts are idempotent — re-running one is a no-op.
+
+`001_add_birthplace_and_godparents.py` adds `place_of_birth`,
+`godfather_name` and `godmother_name`. They are nullable in the database, so
+members created before the change come back with `null` for them; the API
+still requires all three when creating or updating a member.
+
+
 ## Frontend
 
 The frontend is a separate static app (`frontend/index.html`, `styles.css`, `app.js`) that talks to this API over HTTP/JSON — no build step or web server required.
@@ -67,7 +88,7 @@ The frontend is a separate static app (`frontend/index.html`, `styles.css`, `app
 ### Using the app
 
 - **Add a member**: fill in the form at the top and click **Add member**.
-- **Search**: enter an intercessor name in the Search section and click **Search**. Click **Clear** to return to the full list.
+- **Search**: in the Search section, fill in any combination of first name, last name and intercessor name, then click **Search**. Multiple fields narrow the results together (AND); each one is a partial, case-insensitive match. Click **Clear** to return to the full list.
 - **Edit a member**: click **Edit** in a row — the form switches to edit mode. Click **Save changes** to update, or **Cancel** to discard.
 - **Delete a member**: click **Delete** in a row and confirm in the dialog.
 
@@ -75,7 +96,7 @@ The frontend calls the following endpoints:
 
 | Action        | Method | Endpoint                          |
 |---------------|--------|------------------------------------|
-| List/search   | GET    | `/members?intercessor_name=`      |
+| List/search   | GET    | `/members?firstname=&lastname=&intercessor_name=` |
 | Get one       | GET    | `/members/{id}`                   |
 | Create        | POST   | `/members`                        |
 | Update        | PUT    | `/members/{id}`                   |

@@ -1,6 +1,7 @@
 # Pydantic models for request validation and API response shapes.
 
 from datetime import date, datetime, timezone
+from typing import Optional
 
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -21,7 +22,10 @@ class MemberBase(BaseModel):
     father_name: str = Field(..., min_length=1, max_length=100)
     mother_name: str = Field(..., min_length=1, max_length=100)
     intercessor_name: str = Field(..., min_length=1, max_length=100)
+    godfather_name: str = Field(..., min_length=1, max_length=100)
+    godmother_name: str = Field(..., min_length=1, max_length=100)
     date_of_birth: date
+    place_of_birth: str = Field(..., min_length=1, max_length=100)
 
 
 class MemberCreate(MemberBase):
@@ -39,5 +43,11 @@ class MemberResponse(MemberBase):
     """Response body representing a stored member, including its assigned ID."""
 
     id: int
+
+    # Relaxed from the required base fields: members stored before these
+    # columns existed come back with no value rather than failing validation.
+    place_of_birth: Optional[str] = None
+    godfather_name: Optional[str] = None
+    godmother_name: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

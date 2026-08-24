@@ -306,3 +306,75 @@ td.actions-cell .btn { margin-inline-start: 6px; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* Print-only content: hidden on screen, revealed by the print sheet below. */
+.print-only { display: none; }
+
+/* Print: keep the member table only, on plain paper. */
+@media print {
+  @page { margin: 14mm; }
+
+  body {
+    background: var(--white);
+    line-height: 1.35;
+  }
+
+  .app-header {
+    padding: 0 0 10px;
+    margin-bottom: 14px;
+  }
+  .app-header .subtitle { display: none; }
+
+  main {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+  }
+
+  /* Everything that is interactive or on-screen chrome. */
+  #form-panel,
+  #search-panel,
+  .panel-header-actions,
+  .status-message,
+  .modal-overlay,
+  .actions-col,
+  td.actions-cell {
+    display: none;
+  }
+
+  .panel {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .panel-header-row { margin-bottom: 4px; }
+
+  .print-only { display: block; }
+
+  .print-meta {
+    margin: 0 0 12px;
+    font-size: 11px;
+    color: var(--ink-500);
+  }
+
+  .table-wrap { overflow: visible; }
+
+  table { font-size: 11px; }
+
+  /* Repeat the column headings on every printed page. */
+  thead { display: table-header-group; }
+  tbody tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  tbody tr:hover { background: transparent; }
+
+  thead th,
+  tbody td {
+    padding: 5px 6px;
+    border-bottom: 1px solid var(--ink-200);
+  }
+}

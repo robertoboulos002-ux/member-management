@@ -15,3 +15,9 @@ class Member(Base):
     mother_name = Column(String, nullable=False)
     intercessor_name = Column(String, nullable=False)
     date_of_birth = Column(Date, nullable=False)
+    # Added after the first release, so they stay nullable at the DB level:
+    # rows created before they existed have no value to backfill with. The
+    # API still requires them on create/update.
+    place_of_birth = Column(String, nullable=True)
+    godfather_name = Column(String, nullable=True)
+    godmother_name = Column(String, nullable=True)

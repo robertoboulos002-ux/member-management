@@ -34,6 +34,10 @@
             <input type="date" id="date_of_birth" required>
           </div>
           <div class="field">
+            <label for="place_of_birth">مكان الميلاد</label>
+            <input type="text" id="place_of_birth" required maxlength="100">
+          </div>
+          <div class="field">
             <label for="father_name">اسم الأب</label>
             <input type="text" id="father_name" required maxlength="100">
           </div>
@@ -44,6 +48,14 @@
           <div class="field">
             <label for="intercessor_name">اسم الشفيع</label>
             <input type="text" id="intercessor_name" required maxlength="100">
+          </div>
+          <div class="field">
+            <label for="godfather_name">اسم العرّاب</label>
+            <input type="text" id="godfather_name" required maxlength="100">
+          </div>
+          <div class="field">
+            <label for="godmother_name">اسم العرّابة</label>
+            <input type="text" id="godmother_name" required maxlength="100">
           </div>
         </div>
 
@@ -56,9 +68,11 @@
     </section>
 
     <!-- Search -->
-    <section class="panel">
+    <section class="panel" id="search-panel">
       <h2>بحث</h2>
       <div class="search-row">
+        <input type="text" id="search-firstname" placeholder="الاسم الأول">
+        <input type="text" id="search-lastname" placeholder="اسم العائلة">
         <input type="text" id="search-intercessor" placeholder="اسم الشفيع">
         <button type="button" id="search-btn" class="btn btn-primary">بحث</button>
         <button type="button" id="clear-search-btn" class="btn btn-ghost">مسح</button>
@@ -73,11 +87,14 @@
           <span class="count-badge" id="member-count">0</span>
           <button type="button" id="export-csv-btn" class="btn btn-ghost btn-small">تصدير CSV</button>
           <button type="button" id="import-csv-btn" class="btn btn-ghost btn-small">استيراد CSV</button>
+          <button type="button" id="print-btn" class="btn btn-ghost btn-small">طباعة</button>
           <input type="file" id="import-csv-input" accept=".csv" hidden>
         </div>
       </div>
 
       <div id="status-message" class="status-message" hidden></div>
+
+      <p class="print-only print-meta" id="print-meta"></p>
 
       <div class="table-wrap">
         <table id="members-table">
@@ -86,9 +103,12 @@
               <th>الاسم الأول</th>
               <th>اسم العائلة</th>
               <th>تاريخ الميلاد</th>
+              <th>مكان الميلاد</th>
               <th>اسم الأب</th>
               <th>اسم الأم</th>
               <th>الشفيع</th>
+              <th>العرّاب</th>
+              <th>العرّابة</th>
               <th class="actions-col">الإجراءات</th>
             </tr>
           </thead>
