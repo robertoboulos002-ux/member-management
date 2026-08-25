@@ -166,7 +166,7 @@ async function loadAndRenderMembers(params = {}) {
 
 async function fetchMember(id) {
   const response = await apiFetch(`/members/${id}`);
-  if (!response.ok) throw new Error("العضو غير موجود.");
+  if (!response.ok) throw new Error("المعمودية غير موجود.");
   return response.json();
 }
 
@@ -198,7 +198,7 @@ async function deleteMember(id) {
 // The API reports errors in English; map the known ones to Arabic and fall
 // back to a generic message so nothing English reaches the user.
 const SERVER_ERRORS = {
-  "Member not found": "العضو غير موجود.",
+  "Member not found": "المعمودية غير موجود.",
 };
 
 async function extractError(response) {
@@ -229,8 +229,8 @@ function getFormPayload() {
 function resetForm() {
   form.reset();
   memberIdField.value = "";
-  formTitle.textContent = "إضافة عضو";
-  submitBtn.textContent = "إضافة عضو";
+  formTitle.textContent = "إضافة معمودية";
+  submitBtn.textContent = "إضافة معمودية";
   cancelEditBtn.hidden = true;
   formError.textContent = "";
 }
@@ -240,7 +240,7 @@ function enterEditMode(member) {
   for (const field of FIELDS) {
     document.getElementById(field).value = member[field] ?? "";
   }
-  formTitle.textContent = `تعديل بيانات العضو رقم ${member.id}`;
+  formTitle.textContent = `تعديل بيانات المعمودية رقم ${member.id}`;
   submitBtn.textContent = "حفظ التغييرات";
   cancelEditBtn.hidden = false;
   formError.textContent = "";
@@ -257,10 +257,10 @@ form.addEventListener("submit", async (event) => {
   try {
     if (editingId) {
       await updateMember(editingId, payload);
-      showStatus("تم تحديث بيانات العضو.", "success");
+      showStatus("تم تحديث بيانات المعمودية.", "success");
     } else {
       await createMember(payload);
-      showStatus("تمت إضافة العضو.", "success");
+      showStatus("تمت إضافة المعمودية.", "success");
     }
     resetForm();
     await loadAndRenderMembers();
@@ -283,7 +283,7 @@ function renderMemberDetail(member) {
 
   const fullName = [member.firstname, member.lastname].filter(Boolean).join(" ");
   detailName.textContent = fullName || "—";
-  detailId.textContent = `رقم العضو: ${member.id}`;
+  detailId.textContent = `رقم المعمودية: ${member.id}`;
 
   detailGrid.innerHTML = "";
   for (const field of FIELDS) {
@@ -318,7 +318,7 @@ async function openDetailById(id) {
   try {
     openDetail(await fetchMember(id));
   } catch {
-    showStatus("تعذّر تحميل بيانات هذا العضو.", "error");
+    showStatus("تعذّر تحميل بيانات هذا المعمودية.", "error");
   }
 }
 
@@ -361,13 +361,13 @@ tbody.addEventListener("click", async (event) => {
     try {
       enterEditMode(await fetchMember(id));
     } catch {
-      showStatus("تعذّر تحميل بيانات هذا العضو للتعديل.", "error");
+      showStatus("تعذّر تحميل بيانات هذا المعمودية للتعديل.", "error");
     }
   }
 
   if (button.dataset.action === "delete") {
     pendingDeleteId = id;
-    deleteModalText.textContent = `سيتم حذف العضو رقم ${id} نهائيًا.`;
+    deleteModalText.textContent = `سيتم حذف المعمودية رقم ${id} نهائيًا.`;
     deleteModal.hidden = false;
   }
 });
@@ -376,7 +376,7 @@ confirmDeleteBtn.addEventListener("click", async () => {
   if (!pendingDeleteId) return;
   try {
     await deleteMember(pendingDeleteId);
-    showStatus("تم حذف العضو.", "success");
+    showStatus("تم حذف المعمودية.", "success");
     if (memberIdField.value === pendingDeleteId) resetForm();
     await loadAndRenderMembers();
   } catch (err) {
@@ -449,7 +449,9 @@ exportCsvBtn.addEventListener("click", () => {
     return;
   }
 
-  const blob = new Blob([buildCsv(currentMembers)], { type: "text/csv;charset=utf-8" });
+  // Leading BOM: without it Excel on Windows reads the file as the ANSI
+  // codepage and shows Arabic as mojibake ("م" -> "Ù…").
+  const blob = new Blob(["\ufeff" + buildCsv(currentMembers)], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
 
   const link = document.createElement("a");
@@ -460,7 +462,7 @@ exportCsvBtn.addEventListener("click", () => {
   link.remove();
   URL.revokeObjectURL(url);
 
-  showStatus(`تم تصدير ${currentMembers.length} عضو.`, "success");
+  showStatus(`تم تصدير ${currentMembers.length} معمودية.`, "success");
 });
 
 // ---- Print ----
@@ -490,6 +492,10 @@ printBtn.addEventListener("click", () => {
 // Minimal state-machine parser: handles quoted fields containing commas,
 // escaped double quotes (""), and CRLF or LF line endings.
 function parseCsv(text) {
+  // Strip a leading BOM (our own export writes one for Excel) so the first
+  // header cell reads "firstname", not BOM + "firstname".
+  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+
   const rows = [];
   let row = [];
   let field = "";
@@ -596,7 +602,7 @@ async function importCsvText(text) {
 
   await loadAndRenderMembers();
 
-  const parts = [`تم استيراد ${imported} من ${dataRows.length} عضو.`];
+  const parts = [`تم استيراد ${imported} من ${dataRows.length} معمودية.`];
   if (skippedInvalid > 0) parts.push(`تم تجاهل ${skippedInvalid} صفًا بسبب حقول ناقصة.`);
   if (failed > 0) parts.push(`تم رفض ${failed} صفًا من الخادم.`);
 
