@@ -56,6 +56,9 @@ class MemberBase(BaseModel):
     must be non-empty after trimming whitespace, except `comments`, which is
     free-form notes and may be omitted or left blank."""
 
+    # The parish register number, chosen by the admin — unlike `id`, which the
+    # database assigns and no one picks.
+    baptism_number: str = Field(..., min_length=1, max_length=50)
     firstname: str = Field(..., min_length=1, max_length=100)
     lastname: str = Field(..., min_length=1, max_length=100)
     father_name: str = Field(..., min_length=1, max_length=100)
@@ -90,6 +93,7 @@ class MemberResponse(MemberBase):
     # Relaxed from the required base fields: members stored before these
     # columns existed come back with no value rather than failing validation.
     place_of_birth: Optional[str] = None
+    baptism_number: Optional[str] = None
     godfather_name: Optional[str] = None
     godmother_name: Optional[str] = None
     baptizing_priest: Optional[str] = None

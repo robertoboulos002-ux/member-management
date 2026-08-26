@@ -21,6 +21,7 @@ from sqlalchemy.engine import Engine
 # used anywhere a plain list of names is expected.
 MEMBER_COLUMNS_ADDED_AFTER_RELEASE = {
     "place_of_birth": "VARCHAR(100)",
+    "baptism_number": "VARCHAR(50)",
     "godfather_name": "VARCHAR(100)",
     "godmother_name": "VARCHAR(100)",
     "baptizing_priest": "VARCHAR(100)",

@@ -23,7 +23,8 @@ router = APIRouter(
 
 @router.post("", response_model=MemberResponse, status_code=201)
 def create_member(member: MemberCreate, db: Session = Depends(get_db)):
-    """Create a new member. The member ID is assigned automatically."""
+    """Create a new member. The row ID is assigned automatically; the register
+    number (`baptism_number`) is supplied by the caller."""
     db_member = Member(**member.model_dump())
     db.add(db_member)
     db.commit()

@@ -18,6 +18,7 @@ _token, _ = issue_token()
 client = TestClient(app, headers={"Authorization": f"Bearer {_token}"})
 
 SAMPLE_MEMBER = {
+    "baptism_number": "12/2024",
     "firstname": "John",
     "lastname": "Doe",
     "father_name": "Michael Doe",
@@ -51,6 +52,7 @@ def test_create_member():
     response = client.post("/members", json=SAMPLE_MEMBER)
     assert response.status_code == 201
     data = response.json()
+    assert data["baptism_number"] == "12/2024"
     assert data["firstname"] == "John"
     assert data["date_of_birth"] == "1990-05-14"
     assert data["place_of_birth"] == "Beirut"
@@ -72,6 +74,7 @@ def test_create_member_missing_field_returns_422():
     "missing",
     [
         "place_of_birth",
+        "baptism_number",
         "godfather_name",
         "godmother_name",
         "baptizing_priest",
@@ -120,6 +123,7 @@ def test_update_member_replaces_new_fields():
     created = client.post("/members", json=SAMPLE_MEMBER).json()
     updated_data = {
         **SAMPLE_MEMBER,
+        "baptism_number": "13/2024",
         "place_of_birth": "Cairo",
         "godfather_name": "Paul Doe",
         "godmother_name": "Martha Doe",
@@ -130,6 +134,7 @@ def test_update_member_replaces_new_fields():
     response = client.put(f"/members/{created['id']}", json=updated_data)
     assert response.status_code == 200
     data = response.json()
+    assert data["baptism_number"] == "13/2024"
     assert data["place_of_birth"] == "Cairo"
     assert data["godfather_name"] == "Paul Doe"
     assert data["godmother_name"] == "Martha Doe"
@@ -159,6 +164,7 @@ def test_legacy_member_without_new_fields_is_returned():
     response = client.get(f"/members/{legacy_id}")
     assert response.status_code == 200
     data = response.json()
+    assert data["baptism_number"] is None
     assert data["place_of_birth"] is None
     assert data["godfather_name"] is None
     assert data["godmother_name"] is None
@@ -289,5 +295,6 @@ def test_database_health_reports_the_live_schema():
     assert data["error"] is None
     assert "members" in data["tables"]
     assert "place_of_birth" in data["expected_members_columns"]
+    assert "baptism_number" in data["expected_members_columns"]
     assert "date_of_baptism" in data["expected_members_columns"]
     assert data["missing_members_columns"] == []

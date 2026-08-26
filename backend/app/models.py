@@ -19,6 +19,10 @@ class Member(Base):
     # rows created before they existed have no value to backfill with. The
     # API still requires them on create/update.
     place_of_birth = Column(String, nullable=True)
+    # The register number the parish assigns, not the row's primary key: the
+    # admin chooses it, it may repeat the format of a paper register
+    # ("12/2024"), and it is what people look a baptism up by.
+    baptism_number = Column(String, nullable=True, index=True)
     godfather_name = Column(String, nullable=True)
     godmother_name = Column(String, nullable=True)
     baptizing_priest = Column(String, nullable=True)

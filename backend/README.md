@@ -114,10 +114,15 @@ python migrations/001_add_birthplace_and_godparents.py
 Point `DATABASE_URL` at the target database first (unset, it migrates the
 local SQLite file). The scripts are idempotent — re-running one is a no-op.
 
-`001_add_birthplace_and_godparents.py` adds `place_of_birth`,
-`godfather_name` and `godmother_name`. They are nullable in the database, so
+`001_add_birthplace_and_godparents.py` adds every column listed in
+`app/migrate.py` as a late addition — `place_of_birth`, `baptism_number`, the
+godparent names and the baptism fields. They are nullable in the database, so
 members created before the change come back with `null` for them; the API
-still requires all three when creating or updating a member.
+still requires them when creating or updating a member.
+
+`baptism_number` is the parish register number and is **entered by the
+admin** — it is deliberately not `id`, which the database assigns and which no
+one chooses.
 
 
 ## Frontend

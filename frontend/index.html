@@ -31,6 +31,13 @@
         <input type="hidden" id="member-id">
 
         <div class="field-grid">
+          <!-- The parish register number, typed in by the admin. It is not the
+               row id the database assigns — that is never shown as a number
+               anyone writes down. -->
+          <div class="field">
+            <label for="baptism_number">رقم المعمودية</label>
+            <input type="text" id="baptism_number" required maxlength="50">
+          </div>
           <div class="field">
             <label for="firstname">الاسم الأول</label>
             <input type="text" id="firstname" required maxlength="100">
@@ -128,6 +135,7 @@
         <table id="members-table">
           <thead>
             <tr>
+              <th>رقم المعمودية</th>
               <th>الاسم الأول</th>
               <th>اسم العائلة</th>
               <th>تاريخ الميلاد</th>

@@ -48,6 +48,7 @@ const cancelDeleteBtn = document.getElementById("cancel-delete-btn");
 // Canonical field order — drives the form payload, the table columns and the
 // CSV column order. Keep it in sync with the <th> row in index.html.
 const FIELDS = [
+  "baptism_number",
   "firstname",
   "lastname",
   "date_of_birth",
@@ -70,6 +71,7 @@ const OPTIONAL_FIELDS = new Set(["comments"]);
 // Arabic labels for the detail view, keyed by the field names above. Same
 // wording as the form labels and the table headings.
 const FIELD_LABELS = {
+  baptism_number: "رقم المعمودية",
   firstname: "الاسم الأول",
   lastname: "اسم العائلة",
   date_of_birth: "تاريخ الميلاد",
@@ -87,6 +89,13 @@ const FIELD_LABELS = {
 
 let pendingDeleteId = null;
 let currentMembers = [];
+
+// How a record is named in headings and confirmations: the register number the
+// admin gave it. Records saved before that field existed have none, so they
+// fall back to the internal row id, marked with # so the two are not confused.
+function registerLabel(member) {
+  return member && member.baptism_number ? member.baptism_number : `#${member ? member.id : ""}`;
+}
 
 // ---- Rendering ----
 
@@ -106,6 +115,7 @@ function renderMembers(members) {
     const row = document.createElement("tr");
 
     row.innerHTML = `
+      <td>${escapeHtml(member.baptism_number)}</td>
       <td>${escapeHtml(member.firstname)}</td>
       <td>${escapeHtml(member.lastname)}</td>
       <td>${escapeHtml(member.date_of_birth)}</td>
@@ -240,7 +250,7 @@ function enterEditMode(member) {
   for (const field of FIELDS) {
     document.getElementById(field).value = member[field] ?? "";
   }
-  formTitle.textContent = `تعديل بيانات المعمودية رقم ${member.id}`;
+  formTitle.textContent = `تعديل بيانات المعمودية رقم ${registerLabel(member)}`;
   submitBtn.textContent = "حفظ التغييرات";
   cancelEditBtn.hidden = false;
   formError.textContent = "";
@@ -283,10 +293,13 @@ function renderMemberDetail(member) {
 
   const fullName = [member.firstname, member.lastname].filter(Boolean).join(" ");
   detailName.textContent = fullName || "—";
-  detailId.textContent = `رقم المعمودية: ${member.id}`;
+  detailId.textContent = `رقم المعمودية: ${registerLabel(member)}`;
 
   detailGrid.innerHTML = "";
   for (const field of FIELDS) {
+    // Already shown as the heading right above the grid.
+    if (field === "baptism_number") continue;
+
     const term = document.createElement("dt");
     term.textContent = FIELD_LABELS[field];
 
@@ -367,7 +380,8 @@ tbody.addEventListener("click", async (event) => {
 
   if (button.dataset.action === "delete") {
     pendingDeleteId = id;
-    deleteModalText.textContent = `سيتم حذف المعمودية رقم ${id} نهائيًا.`;
+    const doomed = currentMembers.find((member) => String(member.id) === String(id));
+    deleteModalText.textContent = `سيتم حذف المعمودية رقم ${registerLabel(doomed)} نهائيًا.`;
     deleteModal.hidden = false;
   }
 });
